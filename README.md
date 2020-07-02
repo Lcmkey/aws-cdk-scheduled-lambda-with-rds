@@ -58,4 +58,18 @@ Delete the Secrest from Secrets Manager
 
     $ aws secretsmanager delete-secret --secret-id automatic-aws-db-shutdown-cdk/github/token --force-delete-without-recovery --region ap-southeast-1
 
+
+Delete the Lmabda deployment Stack
+
+    $ aws cloudformation delete-stack --stack-name LambdaDeploymentStack
+
+Delete The Pipeline Stack
+
+    $ aws cloudformation delete-stack --stack-name PipelineStack
+
+or
+
+    $ cdk destroy PipelineStack
+
+<!-- Reference -->
 [Maarten_Thoelen]:https://medium.com/hatchsoftware/using-the-aws-cdk-to-build-scheduled-lambda-functions-13eb1674586e
