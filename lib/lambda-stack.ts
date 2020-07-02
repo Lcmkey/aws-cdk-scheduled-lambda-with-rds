@@ -49,15 +49,21 @@ export class LambdaStack extends Stack {
       this.startUpLambdaCode
     );
 
-    const shutdownLambdaFuncAlias = this.buildAlias(shudownLambdaFunc);
-    const startupLambdaFuncAlias = this.buildAlias(startupLambdaFunc);
+    const shutdownLambdaFuncAlias = this.buildAlias(
+      "shutdown",
+      shudownLambdaFunc
+    );
+    const startupLambdaFuncAlias = this.buildAlias(
+      "startup",
+      startupLambdaFunc
+    );
 
     this.buildLambdaDeploymentGroup(shutdownLambdaFuncAlias);
     this.buildLambdaDeploymentGroup(startupLambdaFuncAlias);
   }
 
-  private buildAlias(lambdaFunc: Function): Alias {
-    return new Alias(this, "LambdaAlias", {
+  private buildAlias(id: string, lambdaFunc: Function): Alias {
+    return new Alias(this, `${id}LambdaAlias`, {
       aliasName: "Prod",
       version: lambdaFunc.latestVersion
     });
