@@ -38,14 +38,35 @@ class PipelineStack extends Stack {
       "/automatic-aws-db-shutdown-cdk/github/token",
       { jsonField: "github-token" }
     );
-    const githubRepo = StringParameter.valueFromLookup(
+
+    // valueFromLookup Always get value you created, event the Para has been deleted
+
+    // const githubRepo = StringParameter.valueFromLookup(
+    //   this,
+    //   "/automatic-aws-db-shutdown-cdk/github/repo"
+    // );
+    // const githubOwner = StringParameter.valueFromLookup(
+    //   this,
+    //   "/automatic-aws-db-shutdown-cdk/github/owner"
+    // );
+
+    const githubOwner = StringParameter.fromStringParameterAttributes(
       this,
-      "/automatic-aws-db-shutdown-cdk/github/repo"
-    );
-    const githubOwner = StringParameter.valueFromLookup(
+      "GitOwner",
+      {
+        parameterName: "/automatic-aws-db-shutdown-cdk/github/owner"
+        // 'version' can be specified but is optional.
+      }
+    ).stringValue;
+
+    const githubRepo = StringParameter.fromStringParameterAttributes(
       this,
-      "/automatic-aws-db-shutdown-cdk/github/owner"
-    );
+      "GitRepo",
+      {
+        parameterName: "/automatic-aws-db-shutdown-cdk/github/repo"
+        // 'version' can be specified but is optional.
+      }
+    ).stringValue;
 
     const sourceOutput = new Artifact("SourceOutput");
     const sourceAction = new GitHubSourceAction({
@@ -156,8 +177,11 @@ class PipelineStack extends Stack {
             commands: ["npm install", "npm install -g cdk"]
           },
           build: {
-            // commands: ["npm run build", "npm run cdk synth -- -o dist"]
-            commands: ["npm run cdk synth -- -o dist"]
+            commands: [
+              // "npm run build"
+              "ls -alt",
+              "npm run cdk synth -- -o dist"
+            ]
           }
         },
         artifacts: {
@@ -169,16 +193,16 @@ class PipelineStack extends Stack {
         buildImage: LinuxBuildImage.UBUNTU_14_04_NODEJS_10_1_0
       },
       environmentVariables: {
-        CDK_DEFAULT_ACCOUNT: {
+        CDK_ACCOUNT: {
           value: account
         },
-        CDK_DEFAULT_REGION: {
+        CDK_REGION: {
           value: region
         },
-        CDK_DEFAULT_RDS_INSTANCE_ID: {
+        CDK_RDS_INSTANCE_ID: {
           value: rdsInstanceId
         },
-        CDK_DEFAULT_RDS_INSTANCE_ARN: {
+        CDK_RDS_INSTANCE_ARN: {
           value: rdsInstanceARN
         }
       }

@@ -21,7 +21,7 @@ To test our code we will use the AWS CLI to setup a MySQL database on a db.t2.mi
 
 Create Rds Instance
 
-    $ aws rds create-db-instance --db-instance-identifier testdb --db-instance-class db.t2.micro --engine mysql --allocated-storage 20 --master-username admin --master-user-password yourPw
+    $ aws rds create-db-instance --db-instance-identifier testdb --db-instance-class db.t2.micro --engine mysql --allocated-storage 20 --master-username admin --master-user-password ${YOUR-RDS-PASSWORD}
 
 Delete Rds Instance
 
