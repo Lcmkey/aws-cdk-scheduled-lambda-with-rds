@@ -58,8 +58,8 @@ export class LambdaStack extends Stack {
       startupLambdaFunc
     );
 
-    this.buildLambdaDeploymentGroup(shutdownLambdaFuncAlias);
-    this.buildLambdaDeploymentGroup(startupLambdaFuncAlias);
+    this.buildLambdaDeploymentGroup("shudown", shutdownLambdaFuncAlias);
+    this.buildLambdaDeploymentGroup("startup", startupLambdaFuncAlias);
   }
 
   private buildAlias(id: string, lambdaFunc: Function): Alias {
@@ -69,8 +69,8 @@ export class LambdaStack extends Stack {
     });
   }
 
-  private buildLambdaDeploymentGroup(alias: Alias) {
-    new LambdaDeploymentGroup(this, "DeploymentGroup", {
+  private buildLambdaDeploymentGroup(id: string, alias: Alias) {
+    new LambdaDeploymentGroup(this, `${id}DeploymentGroup`, {
       alias,
       deploymentConfig: LambdaDeploymentConfig.LINEAR_10PERCENT_EVERY_1MINUTE
     });
