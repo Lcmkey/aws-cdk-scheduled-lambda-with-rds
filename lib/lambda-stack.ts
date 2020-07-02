@@ -31,6 +31,8 @@ export class LambdaStack extends Stack {
     this.shutDownLambdaCode = Code.fromCfnParameters();
     this.startUpLambdaCode = Code.fromCfnParameters();
 
+    // Create Showdown && Startup lambda func
+
     const shudownLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBShutDown",
       props.rdsInstanceId,
@@ -49,6 +51,7 @@ export class LambdaStack extends Stack {
       this.startUpLambdaCode
     );
 
+    // Define Alias
     const shutdownLambdaFuncAlias = this.buildAlias(
       "shutdown",
       shudownLambdaFunc
@@ -58,24 +61,12 @@ export class LambdaStack extends Stack {
       startupLambdaFunc
     );
 
+    // Create Deployment Group
     this.buildLambdaDeploymentGroup("shudown", shutdownLambdaFuncAlias);
     this.buildLambdaDeploymentGroup("startup", startupLambdaFuncAlias);
   }
 
-  private buildAlias(id: string, lambdaFunc: Function): Alias {
-    return new Alias(this, `${id}LambdaAlias`, {
-      aliasName: "Prod",
-      version: lambdaFunc.latestVersion
-    });
-  }
-
-  private buildLambdaDeploymentGroup(id: string, alias: Alias) {
-    new LambdaDeploymentGroup(this, `${id}DeploymentGroup`, {
-      alias,
-      deploymentConfig: LambdaDeploymentConfig.LINEAR_10PERCENT_EVERY_1MINUTE
-    });
-  }
-
+  // Create Lambda Func, Policy && cloudwatch rules
   private buildEventTriggeredLambdaFunction(
     name: string,
     rdsInstanceId: string,
@@ -138,6 +129,22 @@ export class LambdaStack extends Stack {
   private buildEventRule(id: string, scheduleExpression: string): Rule {
     return new Rule(this, id, {
       schedule: Schedule.expression("cron(" + scheduleExpression + ")")
+    });
+  }
+
+  // Create Lambda Alias
+  private buildAlias(id: string, lambdaFunc: Function): Alias {
+    return new Alias(this, `${id}LambdaAlias`, {
+      aliasName: "Prod",
+      version: lambdaFunc.latestVersion
+    });
+  }
+
+  // Create Lambda Deployment Group
+  private buildLambdaDeploymentGroup(id: string, alias: Alias) {
+    new LambdaDeploymentGroup(this, `${id}DeploymentGroup`, {
+      alias,
+      deploymentConfig: LambdaDeploymentConfig.LINEAR_10PERCENT_EVERY_1MINUTE
     });
   }
 }
