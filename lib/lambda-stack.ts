@@ -3,11 +3,16 @@ import {
   CfnParametersCode,
   Code,
   Function,
-  Runtime
+  Runtime,
+  Alias
 } from "@aws-cdk/aws-lambda";
 import { LambdaFunction } from "@aws-cdk/aws-events-targets";
 import { PolicyStatement, Effect } from "@aws-cdk/aws-iam";
 import { Rule, Schedule } from "@aws-cdk/aws-events";
+import {
+  LambdaDeploymentGroup,
+  LambdaDeploymentConfig
+} from "@aws-cdk/aws-codedeploy";
 
 // Define interface
 export interface LambdaStackProps extends StackProps {
@@ -24,7 +29,9 @@ export class LambdaStack extends Stack {
 
     // The code that defines your stack goes here
     this.shutDownLambdaCode = Code.fromCfnParameters();
-    this.buildEventTriggeredLambdaFunction(
+    this.startUpLambdaCode = Code.fromCfnParameters();
+
+    const shudownLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBShutDown",
       props.rdsInstanceId,
       props.rdsInstanceARN,
@@ -33,8 +40,7 @@ export class LambdaStack extends Stack {
       this.shutDownLambdaCode
     );
 
-    this.startUpLambdaCode = Code.fromCfnParameters();
-    this.buildEventTriggeredLambdaFunction(
+    const startupLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBStartUp",
       props.rdsInstanceId,
       props.rdsInstanceARN,
@@ -42,6 +48,26 @@ export class LambdaStack extends Stack {
       "0 5 ? * MON-FRI *",
       this.startUpLambdaCode
     );
+
+    const shutdownLambdaFuncAlias = this.buildAlias(shudownLambdaFunc);
+    const startupLambdaFuncAlias = this.buildAlias(startupLambdaFunc);
+
+    this.buildLambdaDeploymentGroup(shutdownLambdaFuncAlias);
+    this.buildLambdaDeploymentGroup(startupLambdaFuncAlias);
+  }
+
+  private buildAlias(lambdaFunc: Function): Alias {
+    return new Alias(this, "LambdaAlias", {
+      aliasName: "Prod",
+      version: lambdaFunc.latestVersion
+    });
+  }
+
+  private buildLambdaDeploymentGroup(alias: Alias) {
+    new LambdaDeploymentGroup(this, "DeploymentGroup", {
+      alias,
+      deploymentConfig: LambdaDeploymentConfig.LINEAR_10PERCENT_EVERY_1MINUTE
+    });
   }
 
   private buildEventTriggeredLambdaFunction(
