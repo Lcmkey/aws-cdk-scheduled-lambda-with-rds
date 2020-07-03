@@ -14,7 +14,8 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 - `cdk synth` emits the synthesized CloudFormation template
 
 # Reference
-[Using the AWS CDK to build scheduled Lambda Functions][Maarten_Thoelen]
+
+[Using the AWS CDK to build scheduled Lambda Functions][maarten_thoelen]
 
 # Setup
 
@@ -48,16 +49,19 @@ Store the github toekn to AWS Secrets Manager
 
 # Clean up
 
-
 Delete Rds Instance
 
     $ aws rds delete-db-instance --db-instance-identifier testdb --skip-final-snapshot
-
 
 Delete the Secrest from Secrets Manager
 
     $ aws secretsmanager delete-secret --secret-id automatic-aws-db-shutdown-cdk/github/token --force-delete-without-recovery --region ap-southeast-1
 
+Delete SSM parameter
+
+    $ aws ssm delete-parameter --name /automatic-aws-db-shutdown-cdk/github/repo
+
+    $ aws ssm delete-parameter --name /automatic-aws-db-shutdown-cdk/github/owner
 
 Delete the Lmabda deployment Stack
 
@@ -72,4 +76,5 @@ or
     $ cdk destroy PipelineStack
 
 <!-- Reference -->
-[Maarten_Thoelen]:https://medium.com/hatchsoftware/using-the-aws-cdk-to-build-scheduled-lambda-functions-13eb1674586e
+
+[maarten_thoelen]: https://medium.com/hatchsoftware/using-the-aws-cdk-to-build-scheduled-lambda-functions-13eb1674586e
