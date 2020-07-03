@@ -19,6 +19,7 @@ interface EnvStackProps extends StackProps {
 }
 
 interface PipelineStackProps extends StackProps {
+  readonly lambdaStackTemplateName: string;
   readonly startUpLambdaCode: CfnParametersCode;
   readonly shutDownLambdaCode: CfnParametersCode;
   readonly env: EnvStackProps;
@@ -74,12 +75,12 @@ class PipelineStack extends Stack {
       owner: githubOwner,
       repo: githubRepo,
       branch: "master",
-      oauthToken: oauthToken,
+      oauthToken,
       output: sourceOutput
     });
 
     // Build actions
-    const lambdaTemplateFileName = "LambdaStack.template.json";
+    const lambdaTemplateFileName = `${props.lambdaStackTemplateName}.template.json`;
     const cdkBuild = this.createCDKBuildProject(
       "CdkBuild",
       lambdaTemplateFileName,
@@ -179,7 +180,6 @@ class PipelineStack extends Stack {
           build: {
             commands: [
               // "npm run build"
-              "ls -alt",
               "npm run cdk synth -- -o dist"
             ]
           }

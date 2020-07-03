@@ -55,7 +55,7 @@ Delete Rds Instance
 
 Delete the Secrest from Secrets Manager
 
-    $ aws secretsmanager delete-secret --secret-id automatic-aws-db-shutdown-cdk/github/token --force-delete-without-recovery --region ap-southeast-1
+    $ aws secretsmanager delete-secret --secret-id /automatic-aws-db-shutdown-cdk/github/token --force-delete-without-recovery --region ap-southeast-1
 
 Delete SSM parameter
 

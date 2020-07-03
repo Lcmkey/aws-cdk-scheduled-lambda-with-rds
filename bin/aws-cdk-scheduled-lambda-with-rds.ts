@@ -58,6 +58,7 @@ const lambdaStack = new LambdaStack(app, `${prefix}-LambdaStack`, {
 // Define Pipeline Stack
 new PipelineStack(app, `${prefix}-PipelineStack`, {
   env,
+  lambdaStackTemplateName: `${prefix}-LambdaStack`,
   startUpLambdaCode: lambdaStack.startUpLambdaCode,
   shutDownLambdaCode: lambdaStack.shutDownLambdaCode,
   rdsInstanceId,
