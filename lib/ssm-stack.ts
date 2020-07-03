@@ -30,7 +30,7 @@ class SsmStack extends Stack {
   }
 
   private buildStringParameter(id: string, name: string, value: string) {
-    new StringParameter(this, `${id}StringParameter`, {
+    new StringParameter(this, `${id}-StringParameter`, {
       parameterName: name,
       stringValue: value,
       description: "Some description",
@@ -43,7 +43,7 @@ class SsmStack extends Stack {
     name: string,
     values: Array<string>
   ) {
-    new StringListParameter(this, `${id}StringListParameter`, {
+    new StringListParameter(this, `${id}-StringListParameter`, {
       parameterName: name,
       stringListValue: values,
       description: "Some description",

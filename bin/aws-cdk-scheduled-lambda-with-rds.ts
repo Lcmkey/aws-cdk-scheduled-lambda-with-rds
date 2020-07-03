@@ -6,6 +6,7 @@ import * as cdk from "@aws-cdk/core";
 import {
   CfnParameterStack,
   SsmStack,
+  SecretsManagerStack,
   LambdaStack,
   PipelineStack
 } from "../lib";
@@ -19,7 +20,8 @@ const {
   CDK_RDS_INSTANCE_ID: rdsInstanceId = "[RDS DB INSTANCE ID]",
   CDK_RDS_INSTANCE_ARN: rdsInstanceARN = "[RDS DB INSTANCE ARN]",
   GIT_OWNER: gitOwner = "[GIT OWMER]",
-  GIT_REPO: gitRepo = "[GIT REPO]"
+  GIT_REPO: gitRepo = "[GIT REPO]",
+  GIT_TOKEN: gitToken = "[GIT TOKEN]"
 } = process.env;
 
 // Define aws defulat env config
@@ -31,13 +33,19 @@ const env = {
 const app = new cdk.App();
 
 // Create Cfn Parameter
-new CfnParameterStack(app, `${prefix}-CfnParameter`);
+new CfnParameterStack(app, `${prefix}-CfnParameterStack`);
 
 // Create SSM
 new SsmStack(app, `${prefix}-SsmStack`, {
   env,
   gitOwner,
   gitRepo
+});
+
+// Create Secret
+new SecretsManagerStack(app, `${prefix}-SecretsManagerStack`, {
+  env,
+  gitToken
 });
 
 // Define Lambda Stack
