@@ -1,5 +1,5 @@
 import { Construct, Stack, StackProps } from "@aws-cdk/core";
-import { Secret, CfnSecret } from "@aws-cdk/aws-secretsmanager";
+import { Secret } from "@aws-cdk/aws-secretsmanager";
 
 interface SecretsManagerStackProps extends StackProps {
   readonly gitToken: string;
@@ -11,7 +11,7 @@ class SecretsManagerStack extends Stack {
 
     this.buildSecretManager(
       "Gittoken",
-      "/automatic-aws-db-shutdown-cdk/github/token/test",
+      "/automatic-aws-db-shutdown-cdk/github/token",
       JSON.stringify({
         "github-token": props.gitToken
       })
