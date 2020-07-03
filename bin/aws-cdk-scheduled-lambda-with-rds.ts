@@ -51,6 +51,7 @@ new SecretsManagerStack(app, `${prefix}-SecretsManagerStack`, {
 // Define Lambda Stack
 const lambdaStack = new LambdaStack(app, `${prefix}-LambdaStack`, {
   env,
+  prefix,
   rdsInstanceId,
   rdsInstanceARN
 });

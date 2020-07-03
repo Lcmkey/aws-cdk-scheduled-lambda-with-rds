@@ -16,6 +16,7 @@ import {
 
 // Define interface
 export interface LambdaStackProps extends StackProps {
+  readonly prefix: string;
   readonly rdsInstanceId: string;
   readonly rdsInstanceARN: string;
 }
@@ -35,6 +36,7 @@ export class LambdaStack extends Stack {
 
     const shudownLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBShutDown",
+      `${props.prefix}-DB-Shutdown-Func`,
       props.rdsInstanceId,
       props.rdsInstanceARN,
       "rds:StopDBInstance",
@@ -44,6 +46,7 @@ export class LambdaStack extends Stack {
 
     const startupLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBStartUp",
+      `${props.prefix}-DB-Startup-Func`,
       props.rdsInstanceId,
       props.rdsInstanceARN,
       "rds:StartDBInstance",
@@ -68,6 +71,7 @@ export class LambdaStack extends Stack {
 
   // Create Lambda Func, Policy && cloudwatch rules
   private buildEventTriggeredLambdaFunction(
+    id: string,
     name: string,
     rdsInstanceId: string,
     rdsInstanceARN: string,
@@ -76,7 +80,8 @@ export class LambdaStack extends Stack {
     lambdaCode: CfnParametersCode
   ): Function {
     const lambdaFn = this.buildLambdaFunction(
-      `${name}Function`,
+      `${id}Function`,
+      name,
       "app",
       lambdaCode,
       rdsInstanceId
@@ -88,7 +93,7 @@ export class LambdaStack extends Stack {
     );
     lambdaFn.addToRolePolicy(instanceActionPolicy);
 
-    const eventRule = this.buildEventRule(`${name}Rule`, scheduleExpression);
+    const eventRule = this.buildEventRule(`${id}Rule`, scheduleExpression);
     eventRule.addTarget(new LambdaFunction(lambdaFn));
 
     return lambdaFn;
@@ -97,11 +102,13 @@ export class LambdaStack extends Stack {
   // Create new Lambda Func
   private buildLambdaFunction(
     id: string,
+    name: string,
     filename: string,
     code: CfnParametersCode,
     rdsInstanceId: string
   ): Function {
     return new Function(this, id, {
+      functionName: name,
       code: code,
       handler: filename + ".lambdaHandler",
       memorySize: 128,
