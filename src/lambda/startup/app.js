@@ -7,7 +7,7 @@ AWS.config.update({ region: "ap-southeast-1" });
 
 // Create publish parameters
 const params = {
-  Message: "ScheduleLambda Shutdown mysql rds" /* required */,
+  Message: "ScheduleLambda Startup mysql rds" /* required */,
   TopicArn: process.env.SNS_TOPIC_ARN
 };
 
