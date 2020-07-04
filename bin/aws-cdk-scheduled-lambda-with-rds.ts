@@ -7,14 +7,16 @@ import {
   CfnParameterStack,
   SsmStack,
   SecretsManagerStack,
+  VpcStack,
+  RdsStack,
   LambdaStack,
   PipelineStack
 } from "../lib";
 
-const prefix = "ScheduleLambda";
-
 // Define aws account / region / rds id && arn
 const {
+  PREFIX: prefix = "[STACK PREFIX NAME]",
+  STAGE: stage = "[DEPLOYMENT STAGE]",
   CDK_ACCOUNT: accountId = "[AWS ACCOUNT ID]",
   CDK_REGION: region = "ap-southeast-1",
   CDK_RDS_INSTANCE_ID: rdsInstanceId = "[RDS DB INSTANCE ID]",
@@ -32,34 +34,61 @@ const env = {
 
 const app = new cdk.App();
 
-// Create Cfn Parameter
-new CfnParameterStack(app, `${prefix}-CfnParameterStack`);
+// Create Cfn Parameter, you can use it in other stack after created
+new CfnParameterStack(app, `${prefix}-${stage}-CfnParameterStack`);
 
 // Create SSM
-new SsmStack(app, `${prefix}-SsmStack`, {
+new SsmStack(app, `${prefix}-${stage}-SsmStack`, {
   env,
+  prefix,
+  stage,
   gitOwner,
   gitRepo
 });
 
-// Create Secret
-new SecretsManagerStack(app, `${prefix}-SecretsManagerStack`, {
+// Define Secrets
+const secretsManagerStack = new SecretsManagerStack(
+  app,
+  `${prefix}-${stage}-SecretsManagerStack`,
+  {
+    env,
+    prefix,
+    stage,
+    gitToken
+  }
+);
+
+// Define Vpc && Security Group
+const vpcStack = new VpcStack(app, `${prefix}-${stage}-VpcStack`, {
   env,
-  gitToken
+  prefix,
+  stage
+});
+
+// Create RDS
+new RdsStack(app, `${prefix}-${stage}-RdsStack`, {
+  env,
+  prefix,
+  stage,
+  vpc: vpcStack.vpc,
+  rdsSg: vpcStack.rdsSg,
+  rdbCredentialsSecret: secretsManagerStack.rdbCredentialsSecret
 });
 
 // Define Lambda Stack
-const lambdaStack = new LambdaStack(app, `${prefix}-LambdaStack`, {
+const lambdaStack = new LambdaStack(app, `${prefix}-${stage}-LambdaStack`, {
   env,
   prefix,
+  stage,
   rdsInstanceId,
   rdsInstanceARN
 });
 
 // Define Pipeline Stack
-new PipelineStack(app, `${prefix}-PipelineStack`, {
+new PipelineStack(app, `${prefix}-${stage}-PipelineStack`, {
   env,
-  lambdaStackTemplateName: `${prefix}-LambdaStack`,
+  prefix,
+  stage,
   startUpLambdaCode: lambdaStack.startUpLambdaCode,
   shutDownLambdaCode: lambdaStack.shutDownLambdaCode,
   rdsInstanceId,

@@ -4,16 +4,14 @@ class CfnParameterStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    new CfnParameter(this, "MyParameterString", {
+    new CfnParameter(this, `ParameterString`, {
       type: "String",
       default: "Hello World"
-      // noEcho: true
     });
 
-    new CfnParameter(this, "MyParameterNumber", {
+    new CfnParameter(this, `ParameterNumber`, {
       type: "Number",
       default: 1337
-      // See the API reference for more configuration props
     });
   }
 }

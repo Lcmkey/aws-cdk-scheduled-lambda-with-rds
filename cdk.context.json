@@ -1,4 +1,9 @@
 {
   "ssm:account=115298227216:parameterName=/automatic-aws-db-shutdown-cdk/github/repo:region=ap-southeast-1": "aws-scheduled-lambda-with-rds",
-  "ssm:account=115298227216:parameterName=/automatic-aws-db-shutdown-cdk/github/owner:region=ap-southeast-1": "Lcmkey"
+  "ssm:account=115298227216:parameterName=/automatic-aws-db-shutdown-cdk/github/owner:region=ap-southeast-1": "Lcmkey",
+  "availability-zones:account=115298227216:region=ap-southeast-1": [
+    "ap-southeast-1a",
+    "ap-southeast-1b",
+    "ap-southeast-1c"
+  ]
 }

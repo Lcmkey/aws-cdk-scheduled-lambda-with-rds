@@ -17,6 +17,7 @@ import {
 // Define interface
 export interface LambdaStackProps extends StackProps {
   readonly prefix: string;
+  readonly stage: string;
   readonly rdsInstanceId: string;
   readonly rdsInstanceARN: string;
 }
@@ -28,6 +29,8 @@ export class LambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: LambdaStackProps) {
     super(scope, id, props);
 
+    const { prefix, stage, rdsInstanceId, rdsInstanceARN } = props;
+
     // The code that defines your stack goes here
     this.shutDownLambdaCode = Code.fromCfnParameters();
     this.startUpLambdaCode = Code.fromCfnParameters();
@@ -36,9 +39,9 @@ export class LambdaStack extends Stack {
 
     const shudownLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBShutDown",
-      `${props.prefix}-DB-Shutdown-Func`,
-      props.rdsInstanceId,
-      props.rdsInstanceARN,
+      `${prefix}-${stage}-DB-Shutdown-Func`,
+      rdsInstanceId,
+      rdsInstanceARN,
       "rds:StopDBInstance",
       "0 17 ? * MON-FRI *",
       this.shutDownLambdaCode
@@ -46,9 +49,9 @@ export class LambdaStack extends Stack {
 
     const startupLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBStartUp",
-      `${props.prefix}-DB-Startup-Func`,
-      props.rdsInstanceId,
-      props.rdsInstanceARN,
+      `${prefix}-${stage}-DB-Startup-Func`,
+      rdsInstanceId,
+      rdsInstanceARN,
       "rds:StartDBInstance",
       "0 5 ? * MON-FRI *",
       this.startUpLambdaCode
@@ -141,7 +144,7 @@ export class LambdaStack extends Stack {
 
   // Create Lambda Alias
   private buildAlias(id: string, lambdaFunc: Function): Alias {
-    return new Alias(this, `${id}LambdaAlias`, {
+    return new Alias(this, `${id}-LambdaAlias`, {
       aliasName: "Prod",
       version: lambdaFunc.latestVersion
     });
@@ -149,7 +152,7 @@ export class LambdaStack extends Stack {
 
   // Create Lambda Deployment Group
   private buildLambdaDeploymentGroup(id: string, alias: Alias) {
-    new LambdaDeploymentGroup(this, `${id}DeploymentGroup`, {
+    new LambdaDeploymentGroup(this, `${id}-DeploymentGroup`, {
       alias,
       deploymentConfig: LambdaDeploymentConfig.LINEAR_10PERCENT_EVERY_1MINUTE
     });

@@ -23,8 +23,12 @@
   "dependencies": {
     "@aws-cdk/aws-codepipeline": "^1.47.0",
     "@aws-cdk/aws-codepipeline-actions": "^1.47.0",
+    "@aws-cdk/aws-ec2": "^1.47.0",
+    "@aws-cdk/aws-ecs": "^1.47.0",
+    "@aws-cdk/aws-ecs-patterns": "^1.47.0",
     "@aws-cdk/aws-events": "^1.47.0",
     "@aws-cdk/aws-events-targets": "^1.47.0",
+    "@aws-cdk/aws-rds": "^1.47.0",
     "@aws-cdk/aws-sam": "^1.47.0",
     "@aws-cdk/aws-secretsmanager": "^1.47.0",
     "@aws-cdk/aws-ssm": "^1.47.0",

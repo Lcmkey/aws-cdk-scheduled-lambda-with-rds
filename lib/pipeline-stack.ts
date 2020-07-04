@@ -19,7 +19,8 @@ interface EnvStackProps extends StackProps {
 }
 
 interface PipelineStackProps extends StackProps {
-  readonly lambdaStackTemplateName: string;
+  readonly prefix: string;
+  readonly stage: string;
   readonly startUpLambdaCode: CfnParametersCode;
   readonly shutDownLambdaCode: CfnParametersCode;
   readonly env: EnvStackProps;
@@ -32,30 +33,24 @@ class PipelineStack extends Stack {
     super(scope, id, props);
 
     const { account, region } = props.env;
-    const { rdsInstanceId, rdsInstanceARN } = props;
+    const { prefix, stage, rdsInstanceId, rdsInstanceARN } = props;
 
     // Source action
     const oauthToken = SecretValue.secretsManager(
-      "/automatic-aws-db-shutdown-cdk/github/token",
+      `/${prefix}-${stage}-automatic-aws-db-shutdown-cdk/github/token`,
       { jsonField: "github-token" }
     );
 
     // valueFromLookup Always get value you created, event the Para has been deleted
 
-    // const githubRepo = StringParameter.valueFromLookup(
-    //   this,
-    //   "/automatic-aws-db-shutdown-cdk/github/repo"
-    // );
-    // const githubOwner = StringParameter.valueFromLookup(
-    //   this,
-    //   "/automatic-aws-db-shutdown-cdk/github/owner"
-    // );
+    // const githubRepo = StringParameter.valueFromLookup(this, "/automatic-aws-db-shutdown-cdk/github/repo");
+    // const githubOwner = StringParameter.valueFromLookup(this, "/automatic-aws-db-shutdown-cdk/github/owner");
 
     const githubOwner = StringParameter.fromStringParameterAttributes(
       this,
       "GitOwner",
       {
-        parameterName: "/automatic-aws-db-shutdown-cdk/github/owner"
+        parameterName: `/${prefix}-${stage}-automatic-aws-db-shutdown-cdk/github/owner`
         // 'version' can be specified but is optional.
       }
     ).stringValue;
@@ -64,7 +59,7 @@ class PipelineStack extends Stack {
       this,
       "GitRepo",
       {
-        parameterName: "/automatic-aws-db-shutdown-cdk/github/repo"
+        parameterName: `/${prefix}-${stage}-automatic-aws-db-shutdown-cdk/github/repo`
         // 'version' can be specified but is optional.
       }
     ).stringValue;
@@ -80,7 +75,7 @@ class PipelineStack extends Stack {
     });
 
     // Build actions
-    const lambdaTemplateFileName = `${props.lambdaStackTemplateName}.template.json`;
+    const lambdaTemplateFileName = `${prefix}-${stage}-LambdaStack.template.json`;
     const cdkBuild = this.createCDKBuildProject(
       "CdkBuild",
       lambdaTemplateFileName,
@@ -125,7 +120,7 @@ class PipelineStack extends Stack {
     const deployAction = new CloudFormationCreateUpdateStackAction({
       actionName: "Lambda_Deploy",
       templatePath: cdkBuildOutput.atPath(lambdaTemplateFileName),
-      stackName: "LambdaDeploymentStack",
+      stackName: `${prefix}-${stage}-LambdaDeploymentStack`,
       adminPermissions: true,
       parameterOverrides: {
         ...props.startUpLambdaCode.assign(startUpLambdaBuildOutput.s3Location),
@@ -135,7 +130,7 @@ class PipelineStack extends Stack {
     });
 
     // Construct the pipeline
-    const pipelineName = "automatic-aws-db-shutdown-cdk-pipeline";
+    const pipelineName = `${prefix}-${stage}-automatic-aws-db-shutdown-cdk-pipeline`;
     const pipeline = new Pipeline(this, pipelineName, {
       pipelineName: pipelineName,
       stages: [

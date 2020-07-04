@@ -2,6 +2,8 @@ import { Construct, Stack, StackProps, CfnParameter } from "@aws-cdk/core";
 import { StringParameter, StringListParameter } from "@aws-cdk/aws-ssm";
 
 interface SsmStackProps extends StackProps {
+  readonly prefix: string;
+  readonly stage: string;
   readonly gitOwner: string;
   readonly gitRepo: string;
 }
@@ -10,22 +12,24 @@ class SsmStack extends Stack {
   constructor(scope: Construct, id: string, props: SsmStackProps) {
     super(scope, id, props);
 
+    const { gitOwner, gitRepo, prefix, stage } = props;
+
     this.buildStringParameter(
       "GitOwner",
-      "/automatic-aws-db-shutdown-cdk/github/owner",
-      props.gitOwner
+      `/${prefix}-${stage}-automatic-aws-db-shutdown-cdk/github/owner`,
+      gitOwner
     );
 
     this.buildStringParameter(
       "GitRepo",
-      "/automatic-aws-db-shutdown-cdk/github/repo",
-      props.gitRepo
+      `/${prefix}-${stage}-automatic-aws-db-shutdown-cdk/github/repo`,
+      gitRepo
     );
 
     this.buildStringListParameter(
       "GitOwnerAndRepo",
-      "/automatic-aws-db-shutdown-cdk/github",
-      [props.gitOwner, props.gitRepo]
+      `/${prefix}-${stage}-automatic-aws-db-shutdown-cdk/github`,
+      [gitOwner, gitRepo]
     );
   }
 
