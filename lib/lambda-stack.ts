@@ -60,10 +60,12 @@ export class LambdaStack extends Stack {
     // Define Alias
     const shutdownLambdaFuncAlias = this.buildAlias(
       "shutdown",
+      stage,
       shudownLambdaFunc
     );
     const startupLambdaFuncAlias = this.buildAlias(
       "startup",
+      stage,
       startupLambdaFunc
     );
 
@@ -143,9 +145,9 @@ export class LambdaStack extends Stack {
   }
 
   // Create Lambda Alias
-  private buildAlias(id: string, lambdaFunc: Function): Alias {
+  private buildAlias(id: string, stage: string, lambdaFunc: Function): Alias {
     return new Alias(this, `${id}-LambdaAlias`, {
-      aliasName: "Prod",
+      aliasName: stage,
       version: lambdaFunc.latestVersion
     });
   }
