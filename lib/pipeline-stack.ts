@@ -79,6 +79,8 @@ class PipelineStack extends Stack {
     const cdkBuild = this.createCDKBuildProject(
       "CdkBuild",
       lambdaTemplateFileName,
+      prefix,
+      stage,
       account,
       region,
       rdsInstanceId,
@@ -160,6 +162,8 @@ class PipelineStack extends Stack {
   private createCDKBuildProject(
     id: string,
     templateFilename: string,
+    prefix: string,
+    stage: string,
     account: string,
     region: string,
     rdsInstanceId: string,
@@ -188,6 +192,12 @@ class PipelineStack extends Stack {
         buildImage: LinuxBuildImage.UBUNTU_14_04_NODEJS_10_1_0
       },
       environmentVariables: {
+        PREFIX: {
+          value: prefix
+        },
+        STAGE: {
+          value: stage
+        },
         CDK_ACCOUNT: {
           value: account
         },
