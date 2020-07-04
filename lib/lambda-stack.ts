@@ -148,7 +148,8 @@ export class LambdaStack extends Stack {
     return new PolicyStatement({
       effect: Effect.ALLOW,
       actions: actionsToAllow,
-      resources: [rdsInstanceARN]
+      // resources: [rdsInstanceARN]
+      resources: ["*"]
     });
   }
 
