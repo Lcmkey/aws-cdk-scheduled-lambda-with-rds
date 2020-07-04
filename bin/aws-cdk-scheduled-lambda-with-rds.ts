@@ -10,7 +10,8 @@ import {
   VpcStack,
   RdsStack,
   LambdaStack,
-  PipelineStack
+  PipelineStack,
+  SnsStack
 } from "../lib";
 
 // Define aws account / region / rds id && arn
@@ -21,6 +22,7 @@ const {
   CDK_REGION: region = "ap-southeast-1",
   CDK_RDS_INSTANCE_ID: rdsInstanceId = "[RDS DB INSTANCE ID]",
   CDK_RDS_INSTANCE_ARN: rdsInstanceARN = "[RDS DB INSTANCE ARN]",
+  CDK_SNS_EMAIL: snsEmail = "[YOUR EMAIL]",
   GIT_OWNER: gitOwner = "[GIT OWMER]",
   GIT_REPO: gitRepo = "[GIT REPO]",
   GIT_TOKEN: gitToken = "[GIT TOKEN]"
@@ -58,6 +60,14 @@ const secretsManagerStack = new SecretsManagerStack(
   }
 );
 
+// Define SNS
+const snsStack = new SnsStack(app, `${prefix}-${stage}-SnsStack`, {
+  env,
+  prefix,
+  stage,
+  email: snsEmail
+});
+
 // Define Vpc && Security Group
 const vpcStack = new VpcStack(app, `${prefix}-${stage}-VpcStack`, {
   env,
@@ -81,7 +91,8 @@ const lambdaStack = new LambdaStack(app, `${prefix}-${stage}-LambdaStack`, {
   prefix,
   stage,
   rdsInstanceId,
-  rdsInstanceARN
+  rdsInstanceARN,
+  snsTopicArn: snsStack.topic.topicArn
 });
 
 // Define Pipeline Stack

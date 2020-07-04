@@ -5,3 +5,4 @@ export { VpcStack } from "./vpc-stack";
 export { RdsStack } from "./rds-stack";
 export { LambdaStack } from "./lambda-stack";
 export { PipelineStack } from "./pipeline-stack";
+export { SnsStack } from "./sns-stack";

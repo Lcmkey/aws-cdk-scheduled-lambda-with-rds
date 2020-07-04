@@ -20,6 +20,7 @@ export interface LambdaStackProps extends StackProps {
   readonly stage: string;
   readonly rdsInstanceId: string;
   readonly rdsInstanceARN: string;
+  readonly snsTopicArn: string;
 }
 
 export class LambdaStack extends Stack {
@@ -29,7 +30,7 @@ export class LambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: LambdaStackProps) {
     super(scope, id, props);
 
-    const { prefix, stage, rdsInstanceId, rdsInstanceARN } = props;
+    const { prefix, stage, rdsInstanceId, rdsInstanceARN, snsTopicArn } = props;
 
     // The code that defines your stack goes here
     this.shutDownLambdaCode = Code.fromCfnParameters();
@@ -42,9 +43,10 @@ export class LambdaStack extends Stack {
       `${prefix}-${stage}-DB-Shutdown-Func`,
       rdsInstanceId,
       rdsInstanceARN,
-      "rds:StopDBInstance",
+      ["rds:StopDBInstance", "sns:Publish"],
       "0 17 ? * MON-FRI *",
-      this.shutDownLambdaCode
+      this.shutDownLambdaCode,
+      snsTopicArn
     );
 
     const startupLambdaFunc = this.buildEventTriggeredLambdaFunction(
@@ -52,9 +54,10 @@ export class LambdaStack extends Stack {
       `${prefix}-${stage}-DB-Startup-Func`,
       rdsInstanceId,
       rdsInstanceARN,
-      "rds:StartDBInstance",
+      ["rds:StartDBInstance", "sns:Publish"],
       "0 5 ? * MON-FRI *",
-      this.startUpLambdaCode
+      this.startUpLambdaCode,
+      snsTopicArn
     );
 
     // Define Alias
@@ -80,25 +83,27 @@ export class LambdaStack extends Stack {
     name: string,
     rdsInstanceId: string,
     rdsInstanceARN: string,
-    instanceAction: string,
+    instanceActions: Array<string>,
     scheduleExpression: string,
-    lambdaCode: CfnParametersCode
+    lambdaCode: CfnParametersCode,
+    snsTopicArn: string
   ): Function {
     const lambdaFn = this.buildLambdaFunction(
       `${id}Function`,
       name,
       "app",
       lambdaCode,
-      rdsInstanceId
+      rdsInstanceId,
+      snsTopicArn
     );
 
     const instanceActionPolicy = this.buildPolicy(
-      instanceAction,
+      instanceActions,
       rdsInstanceARN
     );
     lambdaFn.addToRolePolicy(instanceActionPolicy);
 
-    const eventRule = this.buildEventRule(`${id}Rule`, scheduleExpression);
+    const eventRule = this.buildEventRule(`${id}-Rule`, scheduleExpression);
     eventRule.addTarget(new LambdaFunction(lambdaFn));
 
     return lambdaFn;
@@ -110,7 +115,8 @@ export class LambdaStack extends Stack {
     name: string,
     filename: string,
     code: CfnParametersCode,
-    rdsInstanceId: string
+    rdsInstanceId: string,
+    snsTopicArn: string
   ): Function {
     return new Function(this, id, {
       functionName: name,
@@ -120,19 +126,20 @@ export class LambdaStack extends Stack {
       timeout: Duration.seconds(300),
       runtime: Runtime.NODEJS_10_X,
       environment: {
-        INSTANCE_IDENTIFIER: rdsInstanceId
+        INSTANCE_IDENTIFIER: rdsInstanceId,
+        SNS_TOPIC_ARN: snsTopicArn
       }
     });
   }
 
   // Create new Policy
   private buildPolicy(
-    actionToAllow: string,
+    actionsToAllow: Array<string>,
     rdsInstanceARN: string
   ): PolicyStatement {
     return new PolicyStatement({
       effect: Effect.ALLOW,
-      actions: [actionToAllow],
+      actions: actionsToAllow,
       resources: [rdsInstanceARN]
     });
   }

@@ -1,4 +1,4 @@
-import { Construct, Stack, StackProps, CfnParameter } from "@aws-cdk/core";
+import { Construct, Stack, StackProps } from "@aws-cdk/core";
 import { StringParameter, StringListParameter } from "@aws-cdk/aws-ssm";
 
 interface SsmStackProps extends StackProps {
