@@ -91,8 +91,7 @@ const lambdaStack = new LambdaStack(app, `${prefix}-${stage}-LambdaStack`, {
   prefix,
   stage,
   rdsInstanceId,
-  rdsInstanceARN,
-  snsTopicArn: snsStack.topic.topicArn
+  rdsInstanceARN
 });
 
 // Define Pipeline Stack

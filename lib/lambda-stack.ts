@@ -9,6 +9,7 @@ import {
 import { LambdaFunction } from "@aws-cdk/aws-events-targets";
 import { PolicyStatement, Effect } from "@aws-cdk/aws-iam";
 import { Rule, Schedule } from "@aws-cdk/aws-events";
+import { StringParameter } from "@aws-cdk/aws-ssm";
 import {
   LambdaDeploymentGroup,
   LambdaDeploymentConfig
@@ -20,7 +21,6 @@ export interface LambdaStackProps extends StackProps {
   readonly stage: string;
   readonly rdsInstanceId: string;
   readonly rdsInstanceARN: string;
-  readonly snsTopicArn: string;
 }
 
 export class LambdaStack extends Stack {
@@ -30,7 +30,15 @@ export class LambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: LambdaStackProps) {
     super(scope, id, props);
 
-    const { prefix, stage, rdsInstanceId, rdsInstanceARN, snsTopicArn } = props;
+    const { prefix, stage, rdsInstanceId, rdsInstanceARN } = props;
+    const snsTopicArn = StringParameter.fromStringParameterAttributes(
+      this,
+      "SnsTopicArn",
+      {
+        parameterName: `${prefix}-${stage}-sns-email-arn`
+        // 'version' can be specified but is optional.
+      }
+    ).stringValue;
 
     // The code that defines your stack goes here
     this.shutDownLambdaCode = Code.fromCfnParameters();

@@ -1,5 +1,6 @@
 import { Construct, Stack, StackProps } from "@aws-cdk/core";
 import { Topic } from "@aws-cdk/aws-sns";
+import { StringParameter } from "@aws-cdk/aws-ssm";
 import { EmailSubscription } from "@aws-cdk/aws-sns-subscriptions";
 
 interface SnsStackProps extends StackProps {
@@ -9,8 +10,6 @@ interface SnsStackProps extends StackProps {
 }
 
 class SnsStack extends Stack {
-  public readonly topic: Topic;
-
   constructor(scope: Construct, id: string, props: SnsStackProps) {
     super(scope, id, props);
 
@@ -23,7 +22,11 @@ class SnsStack extends Stack {
 
     topic.addSubscription(new EmailSubscription(email));
 
-    this.topic = topic;
+    // Save Arn to SSM, you can use it in other stack after created
+    new StringParameter(this, `${prefix}-${stage}-SnsEmailArn`, {
+      parameterName: `${prefix}-${stage}-sns-email-arn`,
+      stringValue: topic.topicArn
+    });
   }
 }
 
