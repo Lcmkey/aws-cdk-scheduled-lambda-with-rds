@@ -4,7 +4,8 @@ import {
   Code,
   Function,
   Runtime,
-  Alias
+  Alias,
+  LayerVersion
 } from "@aws-cdk/aws-lambda";
 import { LambdaFunction } from "@aws-cdk/aws-events-targets";
 import { PolicyStatement, Effect } from "@aws-cdk/aws-iam";
@@ -24,6 +25,7 @@ export interface LambdaStackProps extends StackProps {
 }
 
 export class LambdaStack extends Stack {
+  public readonly lambdaLayerCode: CfnParametersCode;
   public readonly startUpLambdaCode: CfnParametersCode;
   public readonly shutDownLambdaCode: CfnParametersCode;
 
@@ -40,15 +42,24 @@ export class LambdaStack extends Stack {
       }
     ).stringValue;
 
-    // The code that defines your stack goes here
+    // Define an AWS Lambda resource
+    this.lambdaLayerCode = Code.cfnParameters();
     this.shutDownLambdaCode = Code.fromCfnParameters();
     this.startUpLambdaCode = Code.fromCfnParameters();
+
+    // Define Lambda layer
+    const lambdaLayer = this.buildLayerVersion(
+      "LambdaLayer",
+      `${prefix}-${stage}-Lambda-Layer`,
+      this.lambdaLayerCode
+    );
 
     // Create Showdown && Startup lambda func
 
     const shudownLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBShutDown",
       `${prefix}-${stage}-DB-Shutdown-Func`,
+      lambdaLayer,
       rdsInstanceId,
       rdsInstanceARN,
       ["rds:StopDBInstance", "sns:Publish"],
@@ -60,6 +71,7 @@ export class LambdaStack extends Stack {
     const startupLambdaFunc = this.buildEventTriggeredLambdaFunction(
       "DBStartUp",
       `${prefix}-${stage}-DB-Startup-Func`,
+      lambdaLayer,
       rdsInstanceId,
       rdsInstanceARN,
       ["rds:StartDBInstance", "sns:Publish"],
@@ -85,10 +97,24 @@ export class LambdaStack extends Stack {
     this.buildLambdaDeploymentGroup("startup", startupLambdaFuncAlias);
   }
 
+  private buildLayerVersion(
+    id: string,
+    name: string,
+    code: CfnParametersCode
+  ): LayerVersion {
+    return new LayerVersion(this, "WKCDA_Dev_Layer", {
+      layerVersionName: "WKCDA_Layer_DEV",
+      // code: lambda.Code.fromAsset(path.resolve(__dirname, "..", "lambda", "layer")),
+      code,
+      compatibleRuntimes: [Runtime.NODEJS_10_X, Runtime.NODEJS_12_X]
+    });
+  }
+
   // Create Lambda Func, Policy && cloudwatch rules
   private buildEventTriggeredLambdaFunction(
     id: string,
     name: string,
+    layer: LayerVersion,
     rdsInstanceId: string,
     rdsInstanceARN: string,
     instanceActions: Array<string>,
@@ -101,6 +127,7 @@ export class LambdaStack extends Stack {
       name,
       "app",
       lambdaCode,
+      layer,
       rdsInstanceId,
       snsTopicArn
     );
@@ -123,6 +150,7 @@ export class LambdaStack extends Stack {
     name: string,
     filename: string,
     code: CfnParametersCode,
+    layer: LayerVersion,
     rdsInstanceId: string,
     snsTopicArn: string
   ): Function {
@@ -133,6 +161,7 @@ export class LambdaStack extends Stack {
       memorySize: 128,
       timeout: Duration.seconds(300),
       runtime: Runtime.NODEJS_10_X,
+      layers: [layer],
       environment: {
         INSTANCE_IDENTIFIER: rdsInstanceId,
         SNS_TOPIC_ARN: snsTopicArn

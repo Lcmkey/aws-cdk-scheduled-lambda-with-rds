@@ -21,6 +21,7 @@ interface EnvStackProps extends StackProps {
 interface PipelineStackProps extends StackProps {
   readonly prefix: string;
   readonly stage: string;
+  readonly lambdaLayerCode: CfnParametersCode;
   readonly startUpLambdaCode: CfnParametersCode;
   readonly shutDownLambdaCode: CfnParametersCode;
   readonly env: EnvStackProps;
@@ -94,8 +95,26 @@ class PipelineStack extends Stack {
       outputs: [cdkBuildOutput]
     });
 
+    const lambdaLayerBuild = this.createLambdaBuildProject(
+      "LambdaLayerBuild",
+      `${prefix}-${stage}-Lambda-Layer-Build`,
+      ["cd ./src/layer && npm install", "cd ./../../", "ls -alt"],
+      [],
+      "src/layer"
+    );
+    const lambdaLayerBuildOutput = new Artifact("LambdaLayerBuildOutput");
+    const lambdaLayerBuildAction = new CodeBuildAction({
+      actionName: "Lambda_Layer_Build",
+      project: lambdaLayerBuild,
+      input: sourceOutput,
+      outputs: [lambdaLayerBuildOutput]
+    });
+
     const shutDownLambdaBuild = this.createLambdaBuildProject(
       "ShutDownLambdaBuild",
+      `${prefix}-${stage}-Shutdown-Lambda-Build`,
+      [],
+      [],
       "src/lambda/shutdown"
     );
     const shutDownLambdaBuildOutput = new Artifact("ShutDownLambdaBuildOutput");
@@ -108,6 +127,9 @@ class PipelineStack extends Stack {
 
     const startUpLambdaBuild = this.createLambdaBuildProject(
       "StartUpLambdaBuild",
+      `${prefix}-${stage}-StartUp-Lambda-Build`,
+      [],
+      [],
       "src/lambda/startup"
     );
     const startUpLambdaBuildOutput = new Artifact("StartUpLambdaBuildOutput");
@@ -125,6 +147,7 @@ class PipelineStack extends Stack {
       stackName: `${prefix}-${stage}-LambdaDeploymentStack`,
       adminPermissions: true,
       parameterOverrides: {
+        ...props.lambdaLayerCode.assign(lambdaLayerBuildOutput.s3Location),
         ...props.startUpLambdaCode.assign(startUpLambdaBuildOutput.s3Location),
         ...props.shutDownLambdaCode.assign(shutDownLambdaBuildOutput.s3Location)
       },
@@ -143,6 +166,7 @@ class PipelineStack extends Stack {
         {
           stageName: "Build",
           actions: [
+            lambdaLayerBuildAction,
             startUpLambdaBuildAction,
             shutDownLambdaBuildAction,
             cdkBuildAction
@@ -216,11 +240,23 @@ class PipelineStack extends Stack {
 
   private createLambdaBuildProject(
     id: string,
+    name: string,
+    installCmds: Array<string>,
+    buildCmds: Array<string>,
     sourceCodeBaseDirectory: string
   ): PipelineProject {
     return new PipelineProject(this, id, {
+      projectName: name,
       buildSpec: BuildSpec.fromObject({
         version: "0.2",
+        phases: {
+          install: {
+            commands: installCmds
+          },
+          build: {
+            commands: buildCmds
+          }
+        },
         artifacts: {
           "base-directory": sourceCodeBaseDirectory,
           files: ["*.js"]

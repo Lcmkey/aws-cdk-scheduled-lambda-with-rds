@@ -99,6 +99,7 @@ new PipelineStack(app, `${prefix}-${stage}-PipelineStack`, {
   env,
   prefix,
   stage,
+  lambdaLayerCode: lambdaStack.lambdaLayerCode,
   startUpLambdaCode: lambdaStack.startUpLambdaCode,
   shutDownLambdaCode: lambdaStack.shutDownLambdaCode,
   rdsInstanceId,
