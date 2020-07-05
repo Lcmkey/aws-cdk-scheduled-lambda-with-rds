@@ -154,7 +154,11 @@ class PipelineStack extends Stack {
         ...props.startUpLambdaCode.assign(startUpLambdaBuildOutput.s3Location),
         ...props.shutDownLambdaCode.assign(shutDownLambdaBuildOutput.s3Location)
       },
-      extraInputs: [startUpLambdaBuildOutput, shutDownLambdaBuildOutput]
+      extraInputs: [
+        lambdaLayerBuildOutput,
+        startUpLambdaBuildOutput,
+        shutDownLambdaBuildOutput
+      ]
     });
 
     // Construct the pipeline
