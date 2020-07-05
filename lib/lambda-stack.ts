@@ -102,8 +102,8 @@ export class LambdaStack extends Stack {
     name: string,
     code: CfnParametersCode
   ): LayerVersion {
-    return new LayerVersion(this, "WKCDA_Dev_Layer", {
-      layerVersionName: "WKCDA_Layer_DEV",
+    return new LayerVersion(this, id, {
+      layerVersionName: name,
       // code: lambda.Code.fromAsset(path.resolve(__dirname, "..", "lambda", "layer")),
       code,
       compatibleRuntimes: [Runtime.NODEJS_10_X, Runtime.NODEJS_12_X]
