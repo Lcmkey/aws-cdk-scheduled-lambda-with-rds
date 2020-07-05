@@ -97,6 +97,7 @@ class LambdaStack extends Stack {
     this.buildLambdaDeploymentGroup("startup", startupLambdaFuncAlias);
   }
 
+  // Create lambda layer
   private buildLayerVersion(
     id: string,
     name: string,
