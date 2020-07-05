@@ -98,10 +98,15 @@ class PipelineStack extends Stack {
     const lambdaLayerBuild = this.createLambdaBuildProject(
       "LambdaLayerBuild",
       `${prefix}-${stage}-Lambda-Layer-Build`,
-      ["cd ./src/layer/nodejs && npm install", "cd ./../../..", "ls -alt"],
+      [
+        "cd ./src/layer/nodejs && npm install",
+        "-al",
+        "cd ./../../..",
+        "ls -alt"
+      ],
       [],
       "src/layer",
-      ["nodejs/package.json", "nodejs/package-lock.json", "nodejs/**/*"]
+      ["nodejs/package.json", "nodejs/package-lock.json", "nodejs/*"]
     );
     const lambdaLayerBuildOutput = new Artifact("LambdaLayerBuildOutput");
     const lambdaLayerBuildAction = new CodeBuildAction({
