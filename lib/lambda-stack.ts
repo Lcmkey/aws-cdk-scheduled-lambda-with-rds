@@ -17,14 +17,14 @@ import {
 } from "@aws-cdk/aws-codedeploy";
 
 // Define interface
-export interface LambdaStackProps extends StackProps {
+interface LambdaStackProps extends StackProps {
   readonly prefix: string;
   readonly stage: string;
   readonly rdsInstanceId: string;
   readonly rdsInstanceARN: string;
 }
 
-export class LambdaStack extends Stack {
+class LambdaStack extends Stack {
   public readonly lambdaLayerCode: CfnParametersCode;
   public readonly startUpLambdaCode: CfnParametersCode;
   public readonly shutDownLambdaCode: CfnParametersCode;
@@ -205,3 +205,5 @@ export class LambdaStack extends Stack {
     });
   }
 }
+
+export { LambdaStack };
