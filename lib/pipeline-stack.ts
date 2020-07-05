@@ -100,7 +100,8 @@ class PipelineStack extends Stack {
       `${prefix}-${stage}-Lambda-Layer-Build`,
       ["cd ./src/layer && npm install", "cd ./../../", "ls -alt"],
       [],
-      "src/layer"
+      "src/layer",
+      ["nodejs/package.json", "nodejs/package-lock.json", "nodejs/**/*"]
     );
     const lambdaLayerBuildOutput = new Artifact("LambdaLayerBuildOutput");
     const lambdaLayerBuildAction = new CodeBuildAction({
@@ -115,7 +116,8 @@ class PipelineStack extends Stack {
       `${prefix}-${stage}-Shutdown-Lambda-Build`,
       [],
       [],
-      "src/lambda/shutdown"
+      "src/lambda/shutdown",
+      ["*.js"]
     );
     const shutDownLambdaBuildOutput = new Artifact("ShutDownLambdaBuildOutput");
     const shutDownLambdaBuildAction = new CodeBuildAction({
@@ -130,7 +132,8 @@ class PipelineStack extends Stack {
       `${prefix}-${stage}-StartUp-Lambda-Build`,
       [],
       [],
-      "src/lambda/startup"
+      "src/lambda/startup",
+      ["*.js"]
     );
     const startUpLambdaBuildOutput = new Artifact("StartUpLambdaBuildOutput");
     const startUpLambdaBuildAction = new CodeBuildAction({
@@ -243,7 +246,8 @@ class PipelineStack extends Stack {
     name: string,
     installCmds: Array<string>,
     buildCmds: Array<string>,
-    sourceCodeBaseDirectory: string
+    sourceCodeBaseDirectory: string,
+    files: Array<string>
   ): PipelineProject {
     return new PipelineProject(this, id, {
       projectName: name,
@@ -259,7 +263,7 @@ class PipelineStack extends Stack {
         },
         artifacts: {
           "base-directory": sourceCodeBaseDirectory,
-          files: ["*.js"]
+          files
         }
       }),
       environment: {
